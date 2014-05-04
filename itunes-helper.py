@@ -2,6 +2,7 @@
 from pyqtmeta.meta import Helper
 import os
 import json
+import argparse
 
 
 class Config(object):
@@ -18,8 +19,6 @@ class Config(object):
                 d = json.loads(s)
                 return Config(d)
         return None
-
-import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("file_name", help="the path to the video file")
