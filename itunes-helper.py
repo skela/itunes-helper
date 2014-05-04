@@ -36,7 +36,7 @@ config = Config.from_config_file(config_path)
 if config is None:
     d1 = {"tv_folder": "~/Movies/Series", "movie_folder": "~/Movies"}
     d2 = {"tv_folder": "/Volumes/Terra/movies/series", "movie_folder": "/Volumes/Terra/movies"}
-    exit("Config is missing, a sample .itunes-helper.conf looks like this:\n%s\nor\n%s" % (str(d1), str(d2)))
+    exit("Config is missing, a sample .itunes-helper.conf looks like this:\n%s\nor\n%s" % (json.dumps(d1), json.dumps(d2)))
 
 h = Helper()
 
