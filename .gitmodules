@@ -1,0 +1,3 @@
+[submodule "pyqtmeta"]
+	path = pyqtmeta
+	url = git@github.com:skela/pyqtmeta.git
