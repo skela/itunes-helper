@@ -10,6 +10,7 @@ class Config(object):
     def __init__(self, d):
         self.tv_folder = None if not "tv_folder" in d else d["tv_folder"]
         self.movie_folder = None if not "movie_folder" in d else d["movie_folder"]
+        self.tv_shows = None if not "tv_shows" in d else d['tv_shows']
 
     @staticmethod
     def from_config_file(path_to_config_file):
@@ -45,6 +46,11 @@ destination_folder = None
 meta_data = None
 if i == '0':
     meta_data = h.infer_metadata_from_tvshow_file(movie_path)
+    if Helper.Keys.TVShow in meta_data and config.tv_shows is not None:
+        title = meta_data[Helper.Keys.TVShow]
+        title = title.lower()
+        if title in config.tv_shows:
+            meta_data[Helper.Keys.TVShow] = config.tv_shows[title]
     destination_folder = config.tv_folder
 elif i == '1':
     meta_data = h.infer_metadata_from_movie_file(movie_path)
