@@ -3,6 +3,7 @@ from pyqtmeta.meta import Helper
 import os
 import json
 import argparse
+import re
 
 
 class Config(object):
@@ -20,6 +21,30 @@ class Config(object):
                 d = json.loads(file_text)
                 return Config(d)
         return None
+
+
+class Logic(object):
+
+    @staticmethod
+    def get_trailing_number(a_string):
+        m = re.search(r'\d+$', a_string)
+        return int(m.group()) if m else None
+
+    @staticmethod
+    def get_destination_folder_for_show(dest_folder, info):
+        if dest_folder is None or info is None:
+            return None
+        show_path = os.path.join(dest_folder, info['show'])
+        season_folders = os.listdir(show_path)
+        show_season_folder = None
+        for a_folder in season_folders:
+            a_number = Logic.get_trailing_number(a_folder)
+            if a_number is not None and a_number == int(info['season_number']):
+                show_season_folder = a_folder
+                break
+        if show_season_folder is not None:
+            dest_folder = os.path.join(show_path, show_season_folder)
+        return dest_folder
 
 parser = argparse.ArgumentParser()
 parser.add_argument("file_name", help="the path to the video file")
@@ -60,6 +85,7 @@ if kind == 'tv_show':
         if title in config.tv_shows:
             meta_data[Helper.Keys.TVShow] = config.tv_shows[title]
     destination_folder = config.tv_folder
+    destination_folder = Logic.get_destination_folder_for_show(destination_folder, meta_data)
 elif kind == 'movie':
     meta_data = h.infer_metadata_from_movie_file(movie_path)
     destination_folder = config.movie_folder
@@ -68,7 +94,7 @@ if meta_data is None or len(meta_data) == 0:
     exit("Found no meta data")
 
 if should_show_info_only:
-    s = "Meta data %s" % str(meta_data)
+    s = "Destination %s\nMeta data %s" % (destination_folder, str(meta_data))
     exit(s)
 
 name = os.path.basename(movie_path)
