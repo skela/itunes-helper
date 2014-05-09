@@ -16,18 +16,22 @@ class Config(object):
     def from_config_file(path_to_config_file):
         if os.path.exists(path_to_config_file):
             with open(path_to_config_file, "r") as fp:
-                s = fp.read()
-                d = json.loads(s)
+                file_text = fp.read()
+                d = json.loads(file_text)
                 return Config(d)
         return None
 
 parser = argparse.ArgumentParser()
 parser.add_argument("file_name", help="the path to the video file")
 parser.add_argument("-c", "--config", help="the path to the config file (if none supplied it will expect it at ~/.itunes-helper.conf")
+parser.add_argument("-i", "--info", default=False, help="show the meta data that can be derived from this video file", action='store_true')
+parser.add_argument("-k", "--kind", default=None, help="let the script know what kind of video file it is (tv_show / movie)")
 args = parser.parse_args()
 
 movie_path = args.file_name
 config_path = args.config
+should_show_info_only = args.info
+kind = args.kind
 
 if config_path is None:
     config_path = os.path.expanduser("~/.itunes-helper.conf")
@@ -38,13 +42,17 @@ if config is None:
     d2 = {"tv_folder": "/Volumes/Terra/movies/series", "movie_folder": "/Volumes/Terra/movies"}
     exit("Config is missing, a sample .itunes-helper.conf looks like this:\n%s\nor\n%s" % (json.dumps(d1), json.dumps(d2)))
 
+if kind is None:
+    i = raw_input("What kind of video file is %s?\nTV Show: 0\nMovie: 1\n> " % (os.path.basename(movie_path)))
+    if i == '0':
+        kind = 'tv_show'
+    elif i == '1':
+        kind = 'movie'
+
 h = Helper()
-
-i = raw_input("What kind of video file is %s?\nTV Show: 0\nMovie: 1\n> " % (os.path.basename(movie_path)))
-
 destination_folder = None
 meta_data = None
-if i == '0':
+if kind == 'tv_show':
     meta_data = h.infer_metadata_from_tvshow_file(movie_path)
     if Helper.Keys.TVShow in meta_data and config.tv_shows is not None:
         title = meta_data[Helper.Keys.TVShow]
@@ -52,12 +60,16 @@ if i == '0':
         if title in config.tv_shows:
             meta_data[Helper.Keys.TVShow] = config.tv_shows[title]
     destination_folder = config.tv_folder
-elif i == '1':
+elif kind == 'movie':
     meta_data = h.infer_metadata_from_movie_file(movie_path)
     destination_folder = config.movie_folder
 
 if meta_data is None or len(meta_data) == 0:
     exit("Found no meta data")
+
+if should_show_info_only:
+    s = "Meta data %s" % str(meta_data)
+    exit(s)
 
 name = os.path.basename(movie_path)
 destination_path = os.path.join(destination_folder, name)
