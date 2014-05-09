@@ -35,6 +35,10 @@ class Logic(object):
         if dest_folder is None or info is None:
             return None
         show_path = os.path.join(dest_folder, info['show'])
+
+        if not os.path.exists(show_path):
+            return dest_folder
+        
         season_folders = os.listdir(show_path)
         show_season_folder = None
         for a_folder in season_folders:
