@@ -81,7 +81,7 @@ if kind is None:
 h = Helper()
 destination_folder = None
 meta_data = None
-if kind == 'tv_show':
+if kind == 'tv_show' or kind == 'tv':
     meta_data = h.infer_metadata_from_tvshow_file(movie_path)
     if Helper.Keys.TVShow in meta_data and config.tv_shows is not None:
         title = meta_data[Helper.Keys.TVShow]
@@ -90,7 +90,7 @@ if kind == 'tv_show':
             meta_data[Helper.Keys.TVShow] = config.tv_shows[title]
     destination_folder = config.tv_folder
     destination_folder = Logic.get_destination_folder_for_show(destination_folder, meta_data)
-elif kind == 'movie':
+elif kind == 'movie' or kind == 'film':
     meta_data = h.infer_metadata_from_movie_file(movie_path)
     destination_folder = config.movie_folder
 
@@ -104,5 +104,7 @@ if should_show_info_only:
 name = os.path.basename(movie_path)
 destination_path = os.path.join(destination_folder, name)
 h.set_metadata_with_dict(movie_path, meta_data, destination_path)
+
+os.system('open %s' % destination_folder)
 
 print "Updated %s with meta data %s" % (destination_path, str(meta_data))
