@@ -48,6 +48,8 @@ class Logic(object):
                 break
         if show_season_folder is not None:
             dest_folder = os.path.join(show_path, show_season_folder)
+        else:
+            dest_folder = show_path
         return dest_folder
 
 parser = argparse.ArgumentParser()
