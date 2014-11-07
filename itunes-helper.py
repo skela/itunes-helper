@@ -12,6 +12,7 @@ class Config(object):
         self.tv_folder = None if not "tv_folder" in d else d["tv_folder"]
         self.movie_folder = None if not "movie_folder" in d else d["movie_folder"]
         self.tv_shows = None if not "tv_shows" in d else d['tv_shows']
+        self.tv_show_folders = None if not "tv_show_folders" in d else d["tv_show_folders"]
 
     @staticmethod
     def from_config_file(path_to_config_file):
@@ -57,6 +58,7 @@ parser.add_argument("file_name", help="the path to the video file")
 parser.add_argument("-c", "--config", help="the path to the config file (if none supplied it will expect it at ~/.itunes-helper.conf")
 parser.add_argument("-i", "--info", default=False, help="show the meta data that can be derived from this video file", action='store_true')
 parser.add_argument("-k", "--kind", default=None, help="let the script know what kind of video file it is (tv_show / movie)")
+parser.add_argument("-t", "--test", default=False, help="let the script test to show you where it would have placed the file, with the detected data", action='store_true')
 args = parser.parse_args()
 
 movie_path = args.file_name
@@ -92,6 +94,11 @@ if kind == 'tv_show' or kind == 'tv':
             meta_data[Helper.Keys.TVShow] = config.tv_shows[title]
     destination_folder = config.tv_folder
     destination_folder = Logic.get_destination_folder_for_show(destination_folder, meta_data)
+    if destination_folder == config.tv_folder:
+        if title in config.tv_show_folders:
+            d = os.path.join(destination_folder, config.tv_show_folders[title])
+            if os.path.exists(d):
+                destination_folder = os.path.join(destination_folder, config.tv_show_folders[title])
 elif kind == 'movie' or kind == 'film':
     meta_data = h.infer_metadata_from_movie_file(movie_path)
     destination_folder = config.movie_folder
@@ -105,8 +112,11 @@ if should_show_info_only:
 
 name = os.path.basename(movie_path)
 destination_path = os.path.join(destination_folder, name)
-h.set_metadata_with_dict(movie_path, meta_data, destination_path)
-
-os.system('open %s' % destination_folder)
-
-print "Updated %s with meta data %s" % (destination_path, str(meta_data))
+if args.test:
+    print "Would have treated the file at %s as a %s file" % (movie_path, kind)
+    print "> Detected meta data: %s" % (meta_data)
+    print "> Destination path: %s" % (destination_path)
+else:
+    h.set_metadata_with_dict(movie_path, meta_data, destination_path)
+    os.system('open %s' % destination_folder)
+    print "Updated %s with meta data %s" % (destination_path, str(meta_data))
